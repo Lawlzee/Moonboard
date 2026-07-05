@@ -34,7 +34,7 @@ public class Scrapper
             }*/
 
             _phone.TakeScreenshot(Path.Combine(outputPath, i + ".png"));
-            ph_phoneone.SwipeRight();
+            _phone.SwipeRight();
             Thread.Sleep(200);
         }
     }
