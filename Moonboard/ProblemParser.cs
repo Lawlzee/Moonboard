@@ -6,7 +6,7 @@ using Tesseract;
 
 namespace Moonboard;
 
-public class ProblemParser
+public static class ProblemParser
 {
     private static Color _starColor = Color.FromArgb(0x01EF01);
     private static Color _startColor = Color.FromArgb(0x01EF01);
@@ -20,16 +20,16 @@ public class ProblemParser
 
         List<Problem> problems = [];
         int i = 0;
-        foreach (string path in paths)
+        foreach (string path in paths.OrderBy(x => int.Parse(Path.GetFileNameWithoutExtension(x))))
         {
             problems.Add(Parse(path, config));
             i++;
             Console.WriteLine($"{i} / {paths.Length}");
 
-            if (i > 10)
-            {
-                return problems;
-            }
+            //if (i > 10)
+            //{
+            //    return problems;
+            //}
         }
 
         return problems;
@@ -43,12 +43,12 @@ public class ProblemParser
         List<Hold> intermediateHolds = [];
         List<Hold> finishHolds = [];
 
-        for (int x = 0; x < config.ColCount; x++)
+        for (int y = 0; y < config.RowCount; y++)
         {
-            for (int y = 0; y < config.RowCount; y++)
+            for (int x = 0; x < config.ColCount; x++)
             {
-                int pixelX = config.A1Pixel.X + x * config.PixelDistanceBetweenHolds;
-                int pixelY = config.A1Pixel.Y - y * config.PixelDistanceBetweenHolds;
+                int pixelX = (int)Math.Round(config.A1Pixel.X + x * config.PixelDistanceBetweenHolds);
+                int pixelY = (int)Math.Round(config.A1Pixel.Y - y * config.PixelDistanceBetweenHolds);
 
                 Color color = bitmap.GetPixel(pixelX, pixelY);
                 float hue = color.GetHue();
@@ -115,5 +115,49 @@ public class ProblemParser
 
         double distance = Math.Sqrt(dr * dr + dg * dg + db * db);
         return distance < _maxColorDiff * maxDistance;
+    }
+
+    public static void TestConfig(BoardConfig config, string inputPath, string outputPath)
+    {
+        using Bitmap bitmap = new Bitmap(inputPath);
+
+        List<Hold> startHolds = [];
+        List<Hold> intermediateHolds = [];
+        List<Hold> finishHolds = [];
+
+        for (int y = 0; y < config.RowCount; y++)
+        {
+            for (int x = 0; x < config.ColCount; x++)
+            {
+                int pixelX = (int)Math.Round(config.A1Pixel.X + x * config.PixelDistanceBetweenHolds);
+                int pixelY = (int)Math.Round(config.A1Pixel.Y - y * config.PixelDistanceBetweenHolds);
+
+                bitmap.SetPixel(pixelX, pixelY, Color.DarkOrange);
+            }
+        }
+
+        int starCount = 0;
+        foreach (Point point in config.StarPositions)
+        {
+            bitmap.SetPixel(point.X, point.Y, Color.DarkOrange);
+        }
+
+        for (int x = config.NameRectangle.Left; x < config.NameRectangle.Right; x++)
+        {
+            for (int y = config.NameRectangle.Top; y < config.NameRectangle.Bottom; y++)
+            {
+                bitmap.SetPixel(x, y, Color.DarkOrange);
+            }
+        }
+
+        for (int x = config.SetterRectangle.Left; x < config.SetterRectangle.Right; x++)
+        {
+            for (int y = config.SetterRectangle.Top; y < config.SetterRectangle.Bottom; y++)
+            {
+                bitmap.SetPixel(x, y, Color.DarkOrange);
+            }
+        }
+
+        bitmap.Save(outputPath);
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
+﻿using Newtonsoft.Json;
 
 namespace Moonboard;
 
@@ -20,6 +17,7 @@ public class Problem
     public List<Hold> FinishHolds { get; init; }
 }
 
+[JsonConverter(typeof(HoldJsonConverter))]
 public record Hold(int ColumnIndex, int Row)
 {
     public char Column => (char)('A' + ColumnIndex);

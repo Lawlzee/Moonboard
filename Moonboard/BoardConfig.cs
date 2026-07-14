@@ -16,13 +16,13 @@ public class BoardConfig
     public List<Point> StarPositions { get; init; }
 
     public Point A1Pixel { get; init; }
-    public int PixelDistanceBetweenHolds { get; init; }
+    public float PixelDistanceBetweenHolds { get; init; }
 
     public static BoardConfig MiniMoonboard2025 = new BoardConfig
     {
         RowCount = 12,
         ColCount = 11,
-        A1Pixel = new Point(76, 775),
+        A1Pixel = new Point(76, 776),
         NameRectangle = new Rectangle(4, 155, 420, 20),
         SetterRectangle = new Rectangle(64, 176, 320, 20),
         GradeRectangle = new Rectangle(84, 176, 320, 20),
@@ -33,6 +33,6 @@ public class BoardConfig
             new Point(232, 218),
             new Point(248, 218),
         ],
-        PixelDistanceBetweenHolds = 33
+        PixelDistanceBetweenHolds = 32.68f
     };
 }
