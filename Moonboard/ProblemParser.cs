@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using System.Text.RegularExpressions;
 using Tesseract;
 
 namespace Moonboard;
 
 public static class ProblemParser
 {
-    private static Color _starColor = Color.FromArgb(0x01EF01);
+    private static Color _starColor = Color.FromArgb(0xFFB821);
     private static Color _startColor = Color.FromArgb(0x01EF01);
     private static Color _intermediateColor = Color.FromArgb(0x005FFF);
     private static Color _finishColor = Color.FromArgb(0xF10000);
@@ -78,20 +79,72 @@ public static class ProblemParser
             }
         }
 
+        (Grade userGrade, Grade setterGrade) = ParseGrade(bitmap, config.GradeRectangle);
+
         return new Problem
         {
             ImagePath = imagePath,
-            Name = ParseText(bitmap, config.NameRectangle),
-            SetterName = ParseText(bitmap, config.SetterRectangle),
+            Name = ParseProblemName(bitmap, config.NameRectangle),
+            SetterName = ParseSetterName(bitmap, config.SetterRectangle),
             WallAngle = 40,
-            UserGrade = Grade.V3,
-            SetterGrade = Grade.V3,
+            UserGrade = userGrade,
+            SetterGrade = setterGrade,
             StarCount = starCount,
             FootRules = FootRules.AnyMarkHolds,
             StartHolds = startHolds,
             IntermediateHolds = intermediateHolds,
             FinishHolds = finishHolds,
         };
+    }
+
+    private static string ParseProblemName(Bitmap bitmap, Rectangle region)
+    {
+        string rawName = ParseText(bitmap, region);
+
+        string regex = @"\s*[\@\©O]?\s*(\\n)?\s*$";
+        return Regex.Replace(rawName, regex, "").Trim();
+    }
+
+    private static string ParseSetterName(Bitmap bitmap, Rectangle region)
+    {
+        string rawName = ParseText(bitmap, region);
+
+        var match = Regex.Match(rawName, "Set by (.*) @");
+        if (match.Success)
+        {
+            return match.Groups[1].Value;
+        }
+
+        return rawName;
+    }
+
+    private static (Grade UserGrade, Grade SetterGrade) ParseGrade(Bitmap bitmap, Rectangle region)
+    {
+        string rawGrade = ParseText(bitmap, region);
+
+        Grade userGrade = Grade.Unknown;
+        var userMatch = Regex.Match(rawGrade, @"User (\d[A-C]\+?)/V\d{1,2}", RegexOptions.IgnoreCase);
+        if (userMatch.Success)
+        {
+            string gradeText = userMatch.Groups[1].Value;
+            if (Enum.TryParse("_" + gradeText.Replace("+", "P"), out Grade grade))
+            {
+                userGrade = grade;
+            }
+        }
+
+        Grade setterGrade = Grade.Unknown;
+        var setterMatch = Regex.Match(rawGrade, @"Setter (\d[A-C]\+?)/V\d{1,2}", RegexOptions.IgnoreCase);
+        if (setterMatch.Success)
+        {
+            string gradeText = setterMatch.Groups[1].Value;
+            if (Enum.TryParse("_" + gradeText.Replace("+", "P"), out Grade grade))
+            {
+                setterGrade = grade;
+            }
+        }
+
+        return (userGrade, setterGrade);
     }
 
     private static string ParseText(Bitmap bitmap, Rectangle region)
@@ -155,6 +208,14 @@ public static class ProblemParser
             for (int y = config.SetterRectangle.Top; y < config.SetterRectangle.Bottom; y++)
             {
                 bitmap.SetPixel(x, y, Color.DarkOrange);
+            }
+        }
+
+        for (int x = config.GradeRectangle.Left; x < config.GradeRectangle.Right; x++)
+        {
+            for (int y = config.GradeRectangle.Top; y < config.GradeRectangle.Bottom; y++)
+            {
+                bitmap.SetPixel(x, y, Color.Red);
             }
         }
 

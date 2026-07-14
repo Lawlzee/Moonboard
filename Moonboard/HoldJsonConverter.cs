@@ -6,7 +6,7 @@ namespace Moonboard;
 
 public class HoldJsonConverter : JsonConverter<Hold>
 {
-    public override void WriteJson(JsonWriter writer, Hold? value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, Hold value, JsonSerializer serializer)
     {
         writer.WriteValue(value?.Name);
     }

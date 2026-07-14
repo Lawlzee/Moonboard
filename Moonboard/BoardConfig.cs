@@ -24,8 +24,8 @@ public class BoardConfig
         ColCount = 11,
         A1Pixel = new Point(76, 776),
         NameRectangle = new Rectangle(4, 155, 420, 20),
-        SetterRectangle = new Rectangle(64, 176, 320, 20),
-        GradeRectangle = new Rectangle(84, 176, 320, 20),
+        SetterRectangle = new Rectangle(64, 176, 320, 18),
+        GradeRectangle = new Rectangle(64, 194, 320, 18),
         StarPositions = [
             new Point(182, 218),
             new Point(198, 218),

@@ -6,6 +6,8 @@ namespace Moonboard;
 
 public enum Grade
 {
+    Unknown,
+
     _6AP,
     _6B,
     _6BP,
