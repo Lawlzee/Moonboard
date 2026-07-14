@@ -35,4 +35,34 @@ public class BoardConfig
         ],
         PixelDistanceBetweenHolds = 32.68f
     };
+
+    public string GetCsvStats(
+        List<Problem> problems, 
+        bool startHolds = true,
+        bool intermediateHolds = true,
+        bool finishHolds = true)
+    {
+        Dictionary<Hold, int> countByHold = problems
+            .SelectMany(x => (Hold[])[
+                ..(startHolds ? x.StartHolds : []),
+                ..(intermediateHolds ? x.IntermediateHolds : []),
+                ..(finishHolds ? x.FinishHolds : [])
+            ])
+            .GroupBy(x => x)
+            .ToDictionary(x => x.Key, x => x.Count());
+
+        StringBuilder sb = new StringBuilder();
+        for (int y = BoardConfig.MiniMoonboard2025.RowCount - 1; y >= 0; y--)
+        {
+            for (int x = 0; x < BoardConfig.MiniMoonboard2025.ColCount; x++)
+            {
+                Hold hold = new Hold(x, y);
+                sb.Append(countByHold.TryGetValue(hold, out int value) ? value : 0);
+                sb.Append("\t");
+            }
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
 }

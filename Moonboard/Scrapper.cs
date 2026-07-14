@@ -19,7 +19,7 @@ public class Scrapper
 
         _phone.Focus();
 
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < problemCount; i++)
         {
             if (Keyboard.IsF12Down())
             {
@@ -35,7 +35,7 @@ public class Scrapper
 
             _phone.TakeScreenshot(Path.Combine(outputPath, i + ".png"));
             _phone.SwipeRight();
-            Thread.Sleep(200);
+            Thread.Sleep(100);
         }
     }
 }
