@@ -1,0 +1,6 @@
+@Moonboard.Web.Server_HostAddress = http://localhost:5272
+
+GET {{Moonboard.Web.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

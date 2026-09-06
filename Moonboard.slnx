@@ -1,3 +1,8 @@
 <Solution>
+  <Project Path="Moonboard.Web/moonboard.web.client/moonboard.web.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Moonboard.Web/Moonboard.Web.Server/Moonboard.Web.Server.csproj" Id="5956af3c-b1d2-4152-8e68-acd2b36a58e4" />
   <Project Path="Moonboard/Moonboard.csproj" />
 </Solution>
