@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useMemo, useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -39,6 +39,7 @@ const App = () => {
 
     const [selectedHolds, setSelectedHolds] = useState<string[]>([]);
     const [selectedProblem, setSelectedProblem] = useState<MoonboardProblem | null>(null);
+    const [textFilter, setTextFilter] = useState<string>("");
 
     const board = useMemo(() => {
         const [imageWidth, imageHeight] = imageSize;
@@ -135,7 +136,7 @@ const App = () => {
             .max()!;
     }, [scorePerHolds])
 
-    const scoredProblems = useMemo(() => {
+    const filteredProblems = useMemo(() => {
         return _(problems)
             .map(problem => {
                 const problemHolds = [
@@ -158,13 +159,16 @@ const App = () => {
                     Score: union > 0 ? intersection / union : 0
                 };
             })
+            .filter(x => textFilter == ""
+                || x.Name.toLowerCase().includes(textFilter.toLowerCase())
+                || x.SetterName.toLowerCase().includes(textFilter.toLowerCase()))
             .orderBy([
                 x => x.Score,
                 x => x.Name
             ],
                 ["desc", "asc"])
             .value()
-    }, [problems, selectedHolds])
+    }, [problems, selectedHolds, textFilter])
 
     const toggleHold = (hold: string) => {
         if (selectedHolds.includes(hold)) {
@@ -182,6 +186,8 @@ const App = () => {
         return Math.sin((x * Math.PI) / 2);
     }
 
+    const onTextFilterChanged = useCallback(_.debounce((text: string) => setTextFilter(text), 250), []);
+
     return (
         <div>
             <div className="vh-100">
@@ -190,9 +196,9 @@ const App = () => {
                     className="w-100 h-100"
                     style={{
                         objectFit: "contain",
-                        objectPosition: "top left"
+                        objectPosition: "top left",
+                        userSelect: "none"
                     }} />
-
             </div>
 
             {_.range(boardSize[1]).map(y =>
@@ -204,6 +210,7 @@ const App = () => {
                             key={x}
                             className="position-absolute"
                             onClick={() => selectedProblem == null && toggleHold(hold)}
+                            role={selectedProblem == null ? "button" : undefined}
                             style={{
                                 width: board.cellSize,
                                 height: board.cellSize,
@@ -228,54 +235,61 @@ const App = () => {
             )}
 
             <div
-                className="position-absolute"
+                className="position-absolute bg-black"
                 style={{
                     ...board.infoPanel,
-                    overflow: "auto"
+                    overflowY: "auto",
+                    overflowX: "hidden"
                 }}
             >
-                <div className="row sticky-top  bg-white">
-                    <button
-                        className="btn btn-warning rounded-0 col border-dark"
-                        onClick={() => setSelectedProblem(problems[Math.floor(Math.random() * problems.length)])}
-                    >
-                        Random problem
-                    </button>
-                    <button
-                        className="btn btn-secondary rounded-0 col border-dark"
-                        disabled={selectedProblem != null || selectedHolds.length == 0}
-                        onClick={() => setSelectedHolds([])}
-                    >
-                        Clear holds
-                    </button>
-                    <button
-                        className="btn btn-secondary rounded-0 col border-dark"
-                        disabled={selectedProblem == null}
-                        onClick={() => setSelectedProblem(null)}
-                    >
-                        Unselect problem
-                    </button>
+                <div className="sticky-top bg-white">
+                    <div className="row">
+                        <button
+                            className="btn btn-warning rounded-0 col border-dark fw-semibold"
+                            onClick={() => setSelectedProblem(problems[Math.floor(Math.random() * problems.length)])}
+                        >
+                            Random
+                        </button>
+                        <button
+                            className="btn btn-secondary rounded-0 col border-dark fw-semibold"
+                            disabled={selectedProblem != null || selectedHolds.length == 0}
+                            onClick={() => setSelectedHolds([])}
+                        >
+                            Clear holds
+                        </button>
+                    </div>
+
+
+                    <input
+                        type="text"
+                        className="form-input w-100"
+                        placeholder="Search"
+                        onChange={e => onTextFilterChanged(e.target.value)}
+                        defaultValue=""
+                    />
                 </div>
 
-                {scoredProblems
+                {filteredProblems
                     .map(x =>
                         <div
                             key={x.ImagePath}
                             onClick={() => setSelectedProblem(selectedProblem == x ? null : x)}
-                            className={"p-1 border border-light " + (x == selectedProblem ? "bg-warning text-dark" : "bg-dark text-light")}
+                            className={"p-1 border border-light fw-light " + (x == selectedProblem ? "bg-warning text-dark" : "bg-dark text-light")}
                             role="button"
                         >
-                            {x.Name}
+                            {x.Name} - {x.SetterName}
                             <span className="badge bg-secondary ms-2">{(x.Score * 100).toFixed(0)}%</span>
                             {/*<span className={"badge " + FootRuleBadge[x.FootRules].className}>{FootRuleBadge[x.FootRules].label}</span>*/}
                         </div>)
                 }
             </div>
 
-            <div className="bg-warning text-dark position-absolute text-center" style={board.problemPanel}>
-                <h6 className="mt-1">
-                    {selectedProblem?.Name ?? ""}
-                </h6>
+            <div className="bg-warning text-dark position-absolute text-center" style={board.problemPanel} role="button">
+                {selectedProblem != null &&
+                    <h6 className="mt-1 fw-bold" onClick={() => setSelectedProblem(null)} >
+                        {selectedProblem.Name} - {selectedProblem.SetterName}
+                    </h6>
+                }
             </div>
 
         </div>
