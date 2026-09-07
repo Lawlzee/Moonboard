@@ -11,3 +11,8 @@ export interface MoonboardProblem {
     IntermediateHolds: string[];
     FinishHolds: string[];
 }
+
+export type FootRules = "AnyMarkHolds"
+    | "Footless"
+    | "FootlessAndKickboard"
+    | "NoKickboard"

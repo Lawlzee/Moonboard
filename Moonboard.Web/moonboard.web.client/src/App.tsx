@@ -7,6 +7,25 @@ import problems from './boulders/V3.json'
 import type { MoonboardProblem } from './boulders/MoonboardProblem';
 import _ from 'lodash';
 
+const FootRuleBadge = {
+    AnyMarkHolds: {
+        label: "Any marked holds",
+        className: "bg-success"
+    },
+    Footless: {
+        label: "Footless",
+        className: "bg-info"
+    },
+    FootlessAndKickboard: {
+        label: "Footless + Kickboard",
+        className: "bg-warning"
+    },
+    NoKickboard: {
+        label: "No kickboard",
+        className: "bg-danger"
+    }
+} as any
+
 const App = () => {
     const windowSize = useWindowSize();
     const imageSize = [1399, 1500]
@@ -41,6 +60,12 @@ const App = () => {
                     height: windowHeight - renderedHeight,
                     left: 0,
                     top: renderedHeight
+                },
+                problemPanel: {
+                    left: 0,
+                    top: renderedHeight - 25,
+                    width: windowWidth,
+                    height: 25
                 }
             }
         }
@@ -57,6 +82,12 @@ const App = () => {
                 height: windowHeight,
                 left: renderedWidth,
                 top: 0,
+            },
+            problemPanel: {
+                left: 0,
+                top: windowHeight - 25,
+                width: renderedWidth,
+                height: 25
             }
         }
 
@@ -147,6 +178,10 @@ const App = () => {
         }
     }
 
+    const easeOutSine = (x: number) => {
+        return Math.sin((x * Math.PI) / 2);
+    }
+
     return (
         <div>
             <div className="vh-100">
@@ -168,7 +203,7 @@ const App = () => {
                         return <div
                             key={x}
                             className="position-absolute"
-                            onClick={() => toggleHold(hold)}
+                            onClick={() => selectedProblem == null && toggleHold(hold)}
                             style={{
                                 width: board.cellSize,
                                 height: board.cellSize,
@@ -184,7 +219,7 @@ const App = () => {
                                                 : "#00000000"
                                     : selectedHolds.includes(hold)
                                         ? "#00FF0088"
-                                        : `hsl(0 ${100 * scorePerHolds[hold] / Math.max(1, maxScore)}% 50% / 50%)`
+                                        : `hsl(10 100% 50% / ${50 * easeOutSine(scorePerHolds[hold] / Math.max(1, maxScore))}%)`
                             }}
                         />
                     }
@@ -199,17 +234,50 @@ const App = () => {
                     overflow: "auto"
                 }}
             >
+                <div className="row sticky-top  bg-white">
+                    <button
+                        className="btn btn-warning rounded-0 col border-dark"
+                        onClick={() => setSelectedProblem(problems[Math.floor(Math.random() * problems.length)])}
+                    >
+                        Random problem
+                    </button>
+                    <button
+                        className="btn btn-secondary rounded-0 col border-dark"
+                        disabled={selectedProblem != null || selectedHolds.length == 0}
+                        onClick={() => setSelectedHolds([])}
+                    >
+                        Clear holds
+                    </button>
+                    <button
+                        className="btn btn-secondary rounded-0 col border-dark"
+                        disabled={selectedProblem == null}
+                        onClick={() => setSelectedProblem(null)}
+                    >
+                        Unselect problem
+                    </button>
+                </div>
+
                 {scoredProblems
                     .map(x =>
                         <div
                             key={x.ImagePath}
                             onClick={() => setSelectedProblem(selectedProblem == x ? null : x)}
-                            className={x == selectedProblem ? "bg-danger" : ""}
+                            className={"p-1 border border-light " + (x == selectedProblem ? "bg-warning text-dark" : "bg-dark text-light")}
+                            role="button"
                         >
-                            {x.Name} ({x.Score * 100}%)
+                            {x.Name}
+                            <span className="badge bg-secondary ms-2">{(x.Score * 100).toFixed(0)}%</span>
+                            {/*<span className={"badge " + FootRuleBadge[x.FootRules].className}>{FootRuleBadge[x.FootRules].label}</span>*/}
                         </div>)
                 }
             </div>
+
+            <div className="bg-warning text-dark position-absolute text-center" style={board.problemPanel}>
+                <h6 className="mt-1">
+                    {selectedProblem?.Name ?? ""}
+                </h6>
+            </div>
+
         </div>
     );
 }
